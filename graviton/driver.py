@@ -33,6 +33,11 @@ _FIREWALL_DRIVER = "%s.%s" % (firewall.__name__,
                               firewall.NoopFirewallDriver.__name__)
 
 
+def Maas():
+    return client.MaasClient(
+        CONF.graviton.api_url, CONF.graviton.api_key)
+
+
 class GravitonDriver(virt_driver.ComputeDriver):
 
     def __init__(self, virtapi, read_only=False):
@@ -61,7 +66,7 @@ class GravitonDriver(virt_driver.ComputeDriver):
         :param instance: The instance object.
         :returns: True if the instance exists. False if not.
         """
-        return bool(client.Maas().node_get(instance['uuid']))
+        return bool(Maas().node_get(instance['uuid']))
 
     def list_instances(self):
         """Return the names of all the instances provisioned.
@@ -70,7 +75,7 @@ class GravitonDriver(virt_driver.ComputeDriver):
 
         """
         return [m.system_id for m in
-                client.Maas().nodes(state=client.MAAS_STATES.ALLOCATED)]
+                Maas().nodes(state=client.MAAS_STATES.ALLOCATED)]
 
     def list_instance_uuids(self):
         """Return the names of all the instances provisioned.
@@ -78,7 +83,7 @@ class GravitonDriver(virt_driver.ComputeDriver):
         :returns: a list of instance uuids.
         """
         return [m.system_id for m in
-                client.Maas().nodes(state=client.MAAS_STATES.ALLOCATED)]
+                Maas().nodes(state=client.MAAS_STATES.ALLOCATED)]
 
     def node_is_available(self, nodename):
         """Confirms a Nova hypervisor node exists in the MAAS inventory.
@@ -86,7 +91,7 @@ class GravitonDriver(virt_driver.ComputeDriver):
         :param nodename: The UUID of the node.
         :returns: True if the node exists, False if not.
         """
-        return bool(client.Maas().node_get(nodename))
+        return bool(Maas().node_get(nodename))
 
     def get_available_nodes(self, refresh=False):
         """Returns the UUIDs of all nodes in the MAAS inventory.
@@ -96,7 +101,7 @@ class GravitonDriver(virt_driver.ComputeDriver):
         :returns: a list of UUIDs
 
         """
-        return client.Maas().nodes()
+        return Maas().nodes()
 
     def get_available_resource(self, nodename):
         """Retrieve resource information.
@@ -124,7 +129,7 @@ class GravitonDriver(virt_driver.ComputeDriver):
                              this driver.
 
         """
-        machine = client.Maas().node_get(instance['uuid'])
+        machine = Maas().node_get(instance['uuid'])
         return {'state': '',
                 'max_mem': machine.mem * 1024,
                 'mem': machine.mem * 1024,
@@ -140,7 +145,7 @@ class GravitonDriver(virt_driver.ComputeDriver):
         :param instance: the instance object.
         :returns: a list of MAC addresses.
         """
-        node = client.Maas().node_get(instance['uuid'])
+        node = Maas().node_get(instance['uuid'])
         return node and set(node.mac_addresses) or None
 
     def spawn(self, context, instance, image_meta, injected_files,
@@ -159,7 +164,7 @@ class GravitonDriver(virt_driver.ComputeDriver):
         :param block_device_info: Instance block device
             information. Ignored by this driver.
         """
-        maas = client.Maas()
+        maas = Maas()
         node = maas.node_acquire()
         if not node:
             LOG.error("Error allocating maas node")
@@ -178,7 +183,7 @@ class GravitonDriver(virt_driver.ComputeDriver):
         :param destroy_disks: Indicates if disks should be
             destroyed. Ignored by this driver.
         """
-        maas = client.Maas()
+        maas = Maas()
         maas.node_stop(instance['uuid'])
         maas.node_release(instance['uuid'])
 
@@ -198,7 +203,7 @@ class GravitonDriver(virt_driver.ComputeDriver):
             encountered. Ignored by this driver.
 
         """
-        maas = client.Maas()
+        maas = Maas()
         maas.node_stop(instance['uuid'])
         maas.node_start(instance['uuid'])
 
@@ -208,7 +213,7 @@ class GravitonDriver(virt_driver.ComputeDriver):
         :param instance: The instance object.
 
         """
-        client.Maas().node_stop(instance['uuid'])
+        Maas().node_stop(instance['uuid'])
 
     def power_on(self, context, instance, network_info,
                  block_device_info=None):
@@ -222,7 +227,7 @@ class GravitonDriver(virt_driver.ComputeDriver):
             information. Ignored by this driver.
 
         """
-        client.Maas().node_start(instance['uuid'])
+        Maas().node_start(instance['uuid'])
 
     def get_host_stats(self, refresh=False):
         """Return the currently known stats for all MAAS nodes.

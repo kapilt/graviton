@@ -7,11 +7,6 @@ from requests_oauthlib import OAuth1
 log = logging.getLogger(__name__)
 
 
-def Maas():
-    from oslo.config import cfg
-    return MaasClient(cfg.CONF.graviton.api_url, cfg.CONF.graviton.api_key)
-
-
 class MaasClient(object):
     """ Client Class
     """
